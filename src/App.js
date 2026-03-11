@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -14,6 +14,8 @@ import {
 } from '@dnd-kit/sortable';
 import { Column } from './Column';
 import { JiraTicket } from './JiraTicket';
+import { saveBoard, loadBoard, saveSettings, loadSettings, appendLog } from './storage';
+import { Settings } from './Settings';
 import './App.css';
 
 const generateColumns = () => {
@@ -26,7 +28,6 @@ const generateColumns = () => {
       tickets: [],
     };
   }
-  // Seed a couple so the board isn't blank
   cols['col-1'].name = 'Auth Platform';
   cols['col-1'].tickets = [
     { id: 'EISGRC-11', type: 'story', label: 'Login Page' },
@@ -39,6 +40,9 @@ const generateColumns = () => {
   return cols;
 };
 
+// Monotonically increasing key so new columns always get a unique id
+let colCounter = 11;
+
 function findColumnOfTicket(columns, ticketId) {
   for (const colId in columns) {
     if (columns[colId].tickets.some(t => t.id === ticketId)) {
@@ -49,17 +53,34 @@ function findColumnOfTicket(columns, ticketId) {
 }
 
 function App() {
-  const [columns, setColumns] = useState(generateColumns);
+  const [columns, setColumns]           = useState(() => loadBoard() || generateColumns());
   const [activeTicket, setActiveTicket] = useState(null);
+  const [newColId, setNewColId]         = useState(null); // which col should auto-open in edit mode
+  const [settings, setSettings]         = useState(() => loadSettings());
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
-  const [ticketNumber, setTicketNumber] = useState('');
-  const [ticketLabel, setTicketLabel]   = useState('');
-  const [ticketType, setTicketType]     = useState('story');
-  const [targetCol, setTargetCol]       = useState('col-1');
+  const [ticketNumber, setTicketNumber]     = useState('');
+  const [ticketLabel, setTicketLabel]       = useState('');
+  const [ticketType, setTicketType]         = useState('story');
+  const [ticketPriority, setTicketPriority] = useState('');
+  const [targetCol, setTargetCol]           = useState('col-1');
+
+  const fileInputRef = useRef(null);
+
+  // Theme effect
+  useEffect(() => {
+    const root = document.documentElement;
+    if (settings.theme === 'system') root.removeAttribute('data-theme');
+    else root.setAttribute('data-theme', settings.theme);
+    saveSettings(settings);
+  }, [settings]);
+
+  // Board persistence effect
+  useEffect(() => { saveBoard(columns); }, [columns]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { distance: 8 },  // must move 8px before drag starts — lets double-click fire cleanly
+      activationConstraint: { distance: 8 },
     }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
@@ -133,12 +154,40 @@ function App() {
         ...prev[targetCol],
         tickets: [
           ...prev[targetCol].tickets,
-          { id, type: ticketType, label: ticketLabel.trim() || id },
+          { id, type: ticketType, label: ticketLabel.trim() || id, priority: ticketPriority },
         ],
       },
     }));
     setTicketNumber('');
     setTicketLabel('');
+    const priorityNote = ticketPriority ? ` [${ticketPriority.toUpperCase()}]` : '';
+    appendLog('ticket_added', `${id} (${ticketType})${priorityNote} → ${columns[targetCol]?.name || targetCol}`);
+  }
+
+  function handleAddColumn() {
+    const id = `col-${colCounter++}`;
+    const newCol = {
+      id,
+      headerId: 'EISGRC-?',
+      name: 'New Column',
+      tickets: [],
+    };
+    setColumns(prev => ({ ...prev, [id]: newCol }));
+    setNewColId(id); // tell that column to open in edit mode immediately
+    appendLog('column_added', newCol.id);
+  }
+
+  function handleDeleteColumn(colId) {
+    appendLog('column_deleted', `${columns[colId]?.headerId} "${columns[colId]?.name}" (${columns[colId]?.tickets.length} tickets)`);
+    setColumns(prev => {
+      const next = { ...prev };
+      delete next[colId];
+      return next;
+    });
+    // If the deleted column was the target for new tickets, reset to first available
+    if (targetCol === colId) {
+      setTargetCol(Object.keys(columns).find(id => id !== colId) || '');
+    }
   }
 
   function handleRename(colId, newHeaderId, newName) {
@@ -146,9 +195,11 @@ function App() {
       ...prev,
       [colId]: { ...prev[colId], headerId: newHeaderId, name: newName },
     }));
+    if (newColId === colId) setNewColId(null);
+    appendLog('column_renamed', `${newHeaderId} "${newName}"`);
   }
 
-  function handleEditTicket(oldId, newId, newLabel) {
+  function handleEditTicket(oldId, newId, newLabel, newPriority) {
     if (oldId !== newId) {
       for (const colId in columns) {
         if (columns[colId].tickets.some(t => t.id === newId)) {
@@ -163,16 +214,19 @@ function App() {
         const idx = next[colId].tickets.findIndex(t => t.id === oldId);
         if (idx !== -1) {
           const tickets = [...next[colId].tickets];
-          tickets[idx] = { ...tickets[idx], id: newId, label: newLabel };
+          tickets[idx] = { ...tickets[idx], id: newId, label: newLabel, priority: newPriority || '' };
           next[colId] = { ...next[colId], tickets };
           break;
         }
       }
       return next;
     });
+    const priorityNote = newPriority ? ` [${newPriority.toUpperCase()}]` : '';
+    appendLog('ticket_edited', `${oldId} → ${newId}${priorityNote}`);
   }
 
   function handleDeleteTicket(ticketId) {
+    appendLog('ticket_deleted', ticketId);
     setColumns(prev => {
       const next = { ...prev };
       for (const colId in next) {
@@ -188,9 +242,43 @@ function App() {
     });
   }
 
+  function handleImport(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        // basic validation: must be an object with at least one column that has id, headerId, name, tickets
+        const cols = Object.values(data);
+        if (!cols.length || !cols[0].id || !Array.isArray(cols[0].tickets)) throw new Error();
+        setColumns(data);
+        appendLog('file_imported', file.name);
+      } catch {
+        alert('Invalid board file.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  }
+
+  function handleExport() {
+    const date = new Date().toISOString().slice(0, 10);
+    const filename = `eisgrc-board-${date}.json`;
+    const blob = new Blob([JSON.stringify(columns, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+    appendLog('file_exported', filename);
+  }
+
   return (
     <div className="App">
-      <h1>EISGRC Ticket Organizer</h1>
+      <div className="app-header">
+        <h1>EISGRC Ticket Organizer</h1>
+        <button className="settings-btn" onClick={() => setSettingsOpen(true)}>⚙ Settings</button>
+      </div>
 
       <div className="add-ticket">
         <span className="ticket-prefix">EISGRC-</span>
@@ -215,12 +303,23 @@ function App() {
           <option value="story">Story</option>
           <option value="task">Task</option>
         </select>
+        <select value={ticketPriority} onChange={e => setTicketPriority(e.target.value)}>
+          <option value="">Priority</option>
+          <option value="p1">P1 — Critical</option>
+          <option value="p2">P2 — High</option>
+          <option value="p3">P3 — Medium</option>
+          <option value="p4">P4 — Low</option>
+        </select>
         <select value={targetCol} onChange={e => setTargetCol(e.target.value)}>
           {Object.values(columns).map(col => (
             <option key={col.id} value={col.id}>{col.headerId} — {col.name}</option>
           ))}
         </select>
         <button onClick={handleAdd}>Add</button>
+        <div className="toolbar-divider" />
+        <button className="toolbar-btn" onClick={() => fileInputRef.current.click()}>📂 Open</button>
+        <button className="toolbar-btn" onClick={handleExport}>💾 Save</button>
+        <input ref={fileInputRef} type="file" accept=".json" style={{display:'none'}} onChange={handleImport} />
       </div>
 
       <DndContext
@@ -235,16 +334,29 @@ function App() {
             <Column
               key={col.id}
               column={col}
+              autoEdit={col.id === newColId}
               onRename={handleRename}
+              onDeleteColumn={handleDeleteColumn}
               onEditTicket={handleEditTicket}
               onDeleteTicket={handleDeleteTicket}
             />
           ))}
+          <button className="add-column-btn" onClick={handleAddColumn}>
+            + Add Column
+          </button>
         </div>
         <DragOverlay>
           {activeTicket ? <JiraTicket ticket={activeTicket} /> : null}
         </DragOverlay>
       </DndContext>
+
+      {settingsOpen && (
+        <Settings
+          settings={settings}
+          onChangeSettings={s => setSettings(s)}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
     </div>
   );
 }

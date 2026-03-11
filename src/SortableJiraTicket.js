@@ -4,10 +4,11 @@ import { CSS } from '@dnd-kit/utilities';
 import { JiraTicket } from './JiraTicket';
 
 export function SortableJiraTicket({ ticket, onEdit, onDelete }) {
-  const [editing, setEditing]       = useState(false);
-  const [confirming, setConfirming] = useState(false);
-  const [draftNum, setDraftNum]     = useState('');
-  const [draftLabel, setDraftLabel] = useState('');
+  const [editing, setEditing]           = useState(false);
+  const [confirming, setConfirming]     = useState(false);
+  const [draftNum, setDraftNum]         = useState('');
+  const [draftLabel, setDraftLabel]     = useState('');
+  const [draftPriority, setDraftPriority] = useState('');
 
   const {
     attributes,
@@ -27,13 +28,14 @@ export function SortableJiraTicket({ ticket, onEdit, onDelete }) {
   function startEdit() {
     setDraftNum(ticket.id.replace('EISGRC-', ''));
     setDraftLabel(ticket.label === ticket.id ? '' : ticket.label);
+    setDraftPriority(ticket.priority || '');
     setEditing(true);
   }
 
   function commit() {
     const num = draftNum.trim();
     if (num) {
-      onEdit(ticket.id, `EISGRC-${num}`, draftLabel.trim() || `EISGRC-${num}`);
+      onEdit(ticket.id, `EISGRC-${num}`, draftLabel.trim() || `EISGRC-${num}`, draftPriority);
     }
     setEditing(false);
   }
@@ -96,6 +98,17 @@ export function SortableJiraTicket({ ticket, onEdit, onDelete }) {
           onKeyDown={handleKeyDown}
           placeholder="Label"
         />
+        <select
+          className="ticket-edit-select"
+          value={draftPriority}
+          onChange={e => setDraftPriority(e.target.value)}
+        >
+          <option value="">— No Priority —</option>
+          <option value="p1">P1 — Critical</option>
+          <option value="p2">P2 — High</option>
+          <option value="p3">P3 — Medium</option>
+          <option value="p4">P4 — Low</option>
+        </select>
         <div className="ticket-edit-actions">
           <button className="ticket-edit-save"   onClick={commit}>Save</button>
           <button className="ticket-edit-cancel" onClick={() => setEditing(false)}>Cancel</button>

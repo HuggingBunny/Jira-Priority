@@ -1,17 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { SortableJiraTicket } from './SortableJiraTicket';
 
-export function Column({ column, onRename, onEditTicket, onDeleteTicket }) {
+export function Column({ column, autoEdit, onRename, onDeleteColumn, onEditTicket, onDeleteTicket }) {
   const { setNodeRef } = useDroppable({ id: column.id });
-  const [editing, setEditing]     = useState(false);
-  const [draftId, setDraftId]     = useState('');
-  const [draftName, setDraftName] = useState('');
+
+  const [editing, setEditing]         = useState(false);
+  const [confirming, setConfirming]   = useState(false);
+  const [draftId, setDraftId]         = useState('');
+  const [draftName, setDraftName]     = useState('');
+
+  // Auto-open edit mode for newly created columns
+  useEffect(() => {
+    if (autoEdit) startEdit();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function startEdit() {
     setDraftId(column.headerId.replace('EISGRC-', ''));
-    setDraftName(column.name);
+    setDraftName(column.name === 'New Column' ? '' : column.name);
     setEditing(true);
   }
 
@@ -29,8 +36,11 @@ export function Column({ column, onRename, onEditTicket, onDeleteTicket }) {
     if (e.key === 'Escape') { setEditing(false); }
   }
 
+  const ticketCount = column.tickets.length;
+
   return (
     <div className="column">
+      {/* ── Column header ── */}
       {editing ? (
         <div className="col-header col-header--editing">
           <div className="col-header-edit-row">
@@ -58,13 +68,32 @@ export function Column({ column, onRename, onEditTicket, onDeleteTicket }) {
             <button className="col-header-cancel" onClick={() => setEditing(false)}>Cancel</button>
           </div>
         </div>
+      ) : confirming ? (
+        <div className="col-header col-header--confirming">
+          <span className="confirm-message">
+            Delete <strong>{column.headerId}</strong>?
+            {ticketCount > 0 && (
+              <span className="confirm-ticket-warning"> ({ticketCount} ticket{ticketCount !== 1 ? 's' : ''} will be lost)</span>
+            )}
+          </span>
+          <div className="confirm-actions">
+            <button className="confirm-yes" onClick={() => onDeleteColumn(column.id)}>Yes</button>
+            <button className="confirm-no"  onClick={() => setConfirming(false)}>No</button>
+          </div>
+        </div>
       ) : (
         <div className="col-header" onDoubleClick={startEdit} title="Double-click to rename">
+          <button
+            className="col-delete-btn"
+            onClick={() => setConfirming(true)}
+            title="Delete column"
+          >×</button>
           <span className="col-header-id">{column.headerId}</span>
           <span className="col-header-name">{column.name}</span>
         </div>
       )}
 
+      {/* ── Tickets ── */}
       <SortableContext
         items={column.tickets.map(t => t.id)}
         strategy={verticalListSortingStrategy}
