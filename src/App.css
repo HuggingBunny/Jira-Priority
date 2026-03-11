@@ -448,6 +448,29 @@ h1 {
   border-color: rgba(107, 114, 128, 0.4);
 }
 
+/* ── Moved flag ────────────────────────────────────────── */
+
+.moved-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  border: 1px solid rgba(99, 179, 237, 0.5);
+  background: rgba(99, 179, 237, 0.12);
+  color: #63b3ed;
+  cursor: pointer;
+  line-height: 1.4;
+  transition: background 0.1s, color 0.1s;
+  margin-left: auto; /* push to right side of ticket-top row */
+}
+
+.moved-badge:hover {
+  background: rgba(99, 179, 237, 0.25);
+  color: #90cdf4;
+}
+
 .ticket-id {
   font-size: 12px;
   font-weight: 700;

@@ -65,7 +65,8 @@ function App() {
   const [ticketPriority, setTicketPriority] = useState('');
   const [targetCol, setTargetCol]           = useState('col-1');
 
-  const fileInputRef = useRef(null);
+  const fileInputRef    = useRef(null);
+  const dragSourceColRef = useRef(null); // tracks origin column during drag; ref avoids stale closure
 
   // Theme effect
   useEffect(() => {
@@ -89,6 +90,7 @@ function App() {
     const colId = findColumnOfTicket(columns, active.id);
     if (colId) {
       setActiveTicket(columns[colId].tickets.find(t => t.id === active.id));
+      dragSourceColRef.current = colId; // record where the drag started
     }
   }
 
@@ -119,20 +121,34 @@ function App() {
 
   function handleDragEnd({ active, over }) {
     setActiveTicket(null);
+    const srcColId = dragSourceColRef.current;
+    dragSourceColRef.current = null;
+
     if (!over) return;
     const activeColId = findColumnOfTicket(columns, active.id);
     const overColId   = findColumnOfTicket(columns, over.id) || over.id;
     if (activeColId !== overColId) return;
 
+    const movedCrossColumn = srcColId && srcColId !== activeColId;
+
     setColumns(prev => {
       const tickets  = [...prev[activeColId].tickets];
       const oldIndex = tickets.findIndex(t => t.id === active.id);
       const newIndex = tickets.findIndex(t => t.id === over.id);
-      if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return prev;
-      return {
-        ...prev,
-        [activeColId]: { ...prev[activeColId], tickets: arrayMove(tickets, oldIndex, newIndex) },
-      };
+
+      let result = tickets;
+      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+        result = arrayMove(tickets, oldIndex, newIndex);
+      }
+
+      if (movedCrossColumn) {
+        if (result === tickets) result = [...tickets]; // ensure we have a copy
+        const idx = result.findIndex(t => t.id === active.id);
+        if (idx !== -1) result[idx] = { ...result[idx], moved: true };
+      }
+
+      if (result === tickets) return prev;
+      return { ...prev, [activeColId]: { ...prev[activeColId], tickets: result } };
     });
   }
 
@@ -242,6 +258,24 @@ function App() {
     });
   }
 
+  function handleAcknowledgeMove(ticketId) {
+    setColumns(prev => {
+      const next = { ...prev };
+      for (const colId in next) {
+        const idx = next[colId].tickets.findIndex(t => t.id === ticketId);
+        if (idx !== -1) {
+          const tickets = [...next[colId].tickets];
+          const { moved, ...rest } = tickets[idx]; // eslint-disable-line no-unused-vars
+          tickets[idx] = rest;
+          next[colId] = { ...next[colId], tickets };
+          break;
+        }
+      }
+      return next;
+    });
+    appendLog('move_acknowledged', ticketId);
+  }
+
   function handleImport(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -339,6 +373,7 @@ function App() {
               onDeleteColumn={handleDeleteColumn}
               onEditTicket={handleEditTicket}
               onDeleteTicket={handleDeleteTicket}
+              onAcknowledgeMove={handleAcknowledgeMove}
             />
           ))}
           <button className="add-column-btn" onClick={handleAddColumn}>

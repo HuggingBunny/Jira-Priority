@@ -3,7 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { JiraTicket } from './JiraTicket';
 
-export function SortableJiraTicket({ ticket, onEdit, onDelete }) {
+export function SortableJiraTicket({ ticket, onEdit, onDelete, onAcknowledgeMove }) {
   const [editing, setEditing]           = useState(false);
   const [confirming, setConfirming]     = useState(false);
   const [draftNum, setDraftNum]         = useState('');
@@ -132,6 +132,7 @@ export function SortableJiraTicket({ ticket, onEdit, onDelete }) {
           e.stopPropagation();
           setConfirming(true);
         }}
+        onAcknowledgeMove={onAcknowledgeMove}
       />
     </div>
   );

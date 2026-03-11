@@ -3,7 +3,7 @@ import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { SortableJiraTicket } from './SortableJiraTicket';
 
-export function Column({ column, autoEdit, onRename, onDeleteColumn, onEditTicket, onDeleteTicket }) {
+export function Column({ column, autoEdit, onRename, onDeleteColumn, onEditTicket, onDeleteTicket, onAcknowledgeMove }) {
   const { setNodeRef } = useDroppable({ id: column.id });
 
   const [editing, setEditing]         = useState(false);
@@ -105,6 +105,7 @@ export function Column({ column, autoEdit, onRename, onDeleteColumn, onEditTicke
               ticket={ticket}
               onEdit={onEditTicket}
               onDelete={onDeleteTicket}
+              onAcknowledgeMove={onAcknowledgeMove}
             />
           ))}
         </div>
