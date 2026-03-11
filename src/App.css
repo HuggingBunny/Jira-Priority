@@ -1,38 +1,398 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #0f1117;
+  color: #e2e8f0;
+}
+
 .App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   min-height: 100vh;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: #e2e8f0;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+/* ── Add Ticket Bar ────────────────────────────────────── */
+
+.add-ticket {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: #1a1f2e;
+  border: 1px solid #2d3748;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+}
+
+.ticket-prefix {
+  font-weight: 700;
+  font-size: 13px;
+  color: #718096;
+  white-space: nowrap;
+}
+
+.input-number {
+  width: 70px;
+  padding: 7px 10px;
+  border-radius: 5px;
+  border: 1px solid #2d3748;
+  background: #2d3748;
+  color: #e2e8f0;
+  font-size: 13px;
+}
+
+.input-label {
+  flex: 1;
+  min-width: 140px;
+  padding: 7px 10px;
+  border-radius: 5px;
+  border: 1px solid #2d3748;
+  background: #2d3748;
+  color: #e2e8f0;
+  font-size: 13px;
+}
+
+.input-number:focus,
+.input-label:focus {
+  outline: none;
+  border-color: #4299e1;
+}
+
+.add-ticket select {
+  padding: 7px 10px;
+  border-radius: 5px;
+  border: 1px solid #2d3748;
+  background: #2d3748;
+  color: #e2e8f0;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.add-ticket select:focus {
+  outline: none;
+  border-color: #4299e1;
+}
+
+.add-ticket button {
+  padding: 7px 18px;
+  border-radius: 5px;
+  border: none;
+  background: #3182ce;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.add-ticket button:hover {
+  background: #2b6cb0;
+}
+
+/* ── Board ─────────────────────────────────────────────── */
+
+.board {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  align-items: flex-start;
+  padding-bottom: 16px;
+}
+
+/* ── Column ────────────────────────────────────────────── */
+
+.column {
+  flex: 0 0 170px;
+  background: #1a1f2e;
+  border: 1px solid #2d3748;
+  border-radius: 8px;
+  padding: 10px 8px;
+  min-height: 320px;
+}
+
+/* ── Column Header ─────────────────────────────────────── */
+
+.col-header {
+  background: #3b2f5e;
+  border-left: 3px solid #9f7aea;
+  border-radius: 5px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
   display: flex;
   flex-direction: column;
+  gap: 3px;
+  cursor: default;
+}
+
+.col-header:not(.col-header--editing):hover {
+  background: #4a3a72;
+  cursor: pointer;
+}
+
+.col-header-id {
+  font-size: 12px;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.col-header-name {
+  font-size: 11px;
+  color: #d6bcfa;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Editing state */
+.col-header--editing {
+  gap: 6px;
+}
+
+.col-header-edit-row {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  gap: 2px;
 }
 
-.App-link {
-  color: #61dafb;
+.col-header-prefix {
+  font-size: 11px;
+  font-weight: 700;
+  color: #b794f4;
+  white-space: nowrap;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.col-header-input {
+  background: #2d245a;
+  border: 1px solid #9f7aea;
+  border-radius: 3px;
+  color: #e2e8f0;
+  font-size: 12px;
+  padding: 3px 6px;
 }
+
+.col-header-input:focus {
+  outline: none;
+  border-color: #d6bcfa;
+}
+
+.col-header-input--id   { width: 52px; }
+.col-header-input--name { width: 100%; }
+
+.col-header-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.col-header-save,
+.col-header-cancel {
+  flex: 1;
+  padding: 4px 0;
+  border: none;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.col-header-save   { background: #2f855a; color: #fff; }
+.col-header-cancel { background: #4a5568; color: #e2e8f0; }
+.col-header-save:hover   { background: #276749; }
+.col-header-cancel:hover { background: #2d3748; }
+
+.column-content {
+  min-height: 200px;
+}
+
+/* ── Tickets ───────────────────────────────────────────── */
+
+.jira-ticket {
+  border-radius: 5px;
+  padding: 7px 10px;
+  margin-bottom: 6px;
+  cursor: grab;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.jira-ticket:active {
+  cursor: grabbing;
+}
+
+/* Story — green */
+.ticket-story {
+  background: #1a3a2a;
+  border-left: 3px solid #48bb78;
+}
+
+/* Task — blue */
+.ticket-task {
+  background: #1a2d4a;
+  border-left: 3px solid #4299e1;
+}
+
+.ticket-badge {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.ticket-story .ticket-badge { color: #68d391; }
+.ticket-task  .ticket-badge { color: #63b3ed; }
+
+.ticket-id {
+  font-size: 12px;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.ticket-label {
+  font-size: 11px;
+  color: #a0aec0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Delete button ─────────────────────────────────────── */
+
+.jira-ticket {
+  position: relative;
+}
+
+.ticket-delete {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: transparent;
+  border: none;
+  color: #718096;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+  opacity: 0;
+  transition: opacity 0.1s, color 0.1s;
+}
+
+.jira-ticket:hover .ticket-delete {
+  opacity: 1;
+}
+
+.ticket-delete:hover {
+  color: #fc8181;
+}
+
+/* ── Ticket inline edit ────────────────────────────────── */
+
+.ticket--editing {
+  cursor: default;
+  gap: 5px;
+}
+
+.ticket-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.ticket-edit-prefix {
+  font-size: 10px;
+  font-weight: 700;
+  color: #a0aec0;
+  white-space: nowrap;
+}
+
+.ticket-edit-input {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid #4a5568;
+  border-radius: 3px;
+  color: #e2e8f0;
+  font-size: 11px;
+  padding: 2px 5px;
+}
+
+.ticket-edit-input:focus {
+  outline: none;
+  border-color: #a0aec0;
+}
+
+.ticket-edit-input--id    { width: 46px; }
+.ticket-edit-input--label { width: 100%; }
+
+.ticket-edit-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.ticket-edit-save,
+.ticket-edit-cancel {
+  flex: 1;
+  padding: 3px 0;
+  border: none;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ticket-edit-save   { background: #2f855a; color: #fff; }
+.ticket-edit-cancel { background: #4a5568; color: #e2e8f0; }
+.ticket-edit-save:hover   { background: #276749; }
+.ticket-edit-cancel:hover { background: #2d3748; }
+
+/* ── Delete confirmation ───────────────────────────────── */
+
+.ticket--confirming {
+  cursor: default;
+  gap: 6px;
+}
+
+.confirm-message {
+  font-size: 11px;
+  color: #e2e8f0;
+}
+
+.confirm-message strong {
+  color: #fc8181;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.confirm-yes,
+.confirm-no {
+  flex: 1;
+  padding: 4px 0;
+  border: none;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.confirm-yes           { background: #c53030; color: #fff; }
+.confirm-yes:hover     { background: #9b2c2c; }
+.confirm-no            { background: #4a5568; color: #e2e8f0; }
+.confirm-no:hover      { background: #2d3748; }
