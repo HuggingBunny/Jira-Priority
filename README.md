@@ -1,7 +1,26 @@
 # Jira Ticket Organizer
 
-A local React drag-and-drop board for organizing Jira tickets across EISGRC columns.
+A local drag-and-drop board for organizing Jira tickets across EISGRC columns.
 No Jira login. No internet required. Board state saves locally and can be shared as a JSON file.
+
+![Jira Ticket Organizer](docs/jira_organizer.png)
+
+---
+
+## Download
+
+**Option A — Download ZIP** (no Git required)
+
+1. Click the green **Code** button at the top of this page
+2. Select **Download ZIP**
+3. Extract the ZIP to any folder on your computer
+
+**Option B — Clone with Git**
+
+```bash
+git clone https://github.com/autisticcaveman/jira-ticket-organizer.git
+cd jira-ticket-organizer
+```
 
 ---
 
@@ -9,123 +28,112 @@ No Jira login. No internet required. Board state saves locally and can be shared
 
 ### macOS
 
-1. Download or clone this repository
-2. Open Terminal, navigate to the folder, and run:
-   ```bash
-   chmod +x install-mac.sh && ./install-mac.sh
-   ```
-   The script checks for Node.js (installs via Homebrew if missing) and installs dependencies.
+Open **Terminal** and navigate to the extracted folder:
 
-3. Launch the app:
-   - **Double-click** `start-mac.command` in Finder
-   - Or run `./start-mac.command` in Terminal
+```bash
+cd path/to/jira-ticket-organizer
+chmod +x install-mac.sh && ./install-mac.sh
+```
 
-   The app opens at **http://localhost:3000** automatically.
+The installer checks for Node.js and installs it via Homebrew if missing.
+If Homebrew is also absent, it will prompt you to install Node.js manually from https://nodejs.org (LTS `.pkg` installer).
 
-> **First time only:** macOS may block `start-mac.command` with a security warning.
-> Right-click the file → **Open** → **Open** to allow it. This only needs to happen once.
+**Launch the app:**
+- Double-click **`start-mac.command`** in Finder
+
+  > First launch only: right-click → **Open** → **Open** to allow the file past macOS Gatekeeper.
+
+- Browser opens automatically at **http://localhost:3000**
+- Close the Terminal window to stop the server
 
 ---
 
 ### Windows 11
 
-1. Download or clone this repository
-2. Double-click **`install-windows.bat`**
-   - Installs Node.js automatically via winget if not present
-   - Installs app dependencies
+Open the extracted folder and **double-click `install-windows.bat`**.
 
-3. Launch the app:
-   - Double-click **`start-windows.bat`**
+The installer checks for Node.js and installs it via winget if missing.
+If winget is unavailable, it will prompt you to install Node.js manually from https://nodejs.org (LTS Windows `.msi` installer).
 
-   The app opens at **http://localhost:3000** automatically.
+> If Node.js installs but npm fails immediately after, close the window and run `install-windows.bat` again — Windows sometimes needs a fresh session to pick up the new PATH.
 
-> **If Node.js installs but npm fails immediately after:** Close the window and run
-> `install-windows.bat` again — Windows sometimes needs a fresh session to update PATH.
+**Launch the app:**
+- Double-click **`start-windows.bat`**
+- Browser opens automatically at **http://localhost:3000**
+- Close the terminal window to stop the server
 
 ---
 
-## Usage
+## Running (after installation)
 
-### Board
+| Platform   | Command / Action              |
+|------------|-------------------------------|
+| macOS      | Double-click `start-mac.command` |
+| Windows 11 | Double-click `start-windows.bat` |
+| Any (CLI)  | `npm start` in the project folder |
 
-- Each **column** (purple header) = one EISGRC item
-- Tickets are **Stories** (green) or **Tasks** (blue)
-- Ticket IDs use the `EISGRC-` prefix — enter just the number
+App runs at **http://localhost:3000**. Nothing is sent to the internet.
 
-### Adding Tickets
+---
 
-Fill in the number, optional label, type, optional priority, and target column, then click **Add** or press **Enter**.
+## Features
 
-### Editing
-
-- **Double-click** any column header, story, or task to edit its ID, label, and priority inline
-- **Hover** a ticket or column header to reveal the **×** delete button
-- Deleting requires a **Yes/No** confirmation (column delete shows how many tickets will be lost)
-
-### Drag and Drop
-
-- Drag tickets within a column to reorder
-- Drag tickets between columns to reassign
-- Tickets moved to a different column show a **↗ moved** badge until acknowledged
-
-### Priority Badges
-
-| Badge | Meaning  |
-|-------|----------|
-| P1    | Critical |
-| P2    | High     |
-| P3    | Medium   |
-| P4    | Low      |
-
-Set on the add form or via double-click edit. Displayed as a colored badge on the ticket.
-
-### Columns
-
-- **Add Column** button at the right end of the board
-- New columns open in edit mode immediately — set the EISGRC ID and name
-- Hover a column header to reveal the **×** delete button
-
-### Saving and Sharing
-
-- **💾 Save** — exports the current board as a dated `.json` file
-- **📂 Open** — imports a `.json` board file
-- Board state is also saved automatically in the browser's localStorage
-
-The JSON file contains the full board state including ticket IDs, labels, types, priorities,
-and moved flags. Share the file, the recipient opens it with **📂 Open**.
-
-### Settings (⚙)
-
-- **Display** — Light / Dark / System theme
-- **App Logs** — view a daily log of all board activity; rotates after 7 days
+- **EISGRC columns** (purple headers) — each column is one EISGRC epic; add/remove freely
+- **Stories** (green) and **Tasks** (blue) — color-coded tickets with type badges
+- **EISGRC- prefix enforced** — enter just the number, prefix is fixed
+- **Drag and drop** — reorder within a column or move tickets between columns
+- **Double-click** any column header, story, or task to inline edit ID, label, and priority
+- **Hover** to reveal × delete on tickets and column headers, with inline Yes/No confirmation
+- **Priority badges** — P1 (Critical/red), P2 (High/orange), P3 (Medium/yellow), P4 (Low/gray)
+- **Moved flag** — tickets dragged cross-column show a teal "↗ moved" badge; click to acknowledge
+- **Board persists** across sessions via localStorage — restored on every open
+- **💾 Save** — export board as a dated `.json` file for sharing or backup
+- **📂 Open** — import a `.json` board file from another user
+- **⚙ Settings** — Light / Dark / System theme toggle; daily app log viewer (7-day rotation)
+- **Duplicate detection** — rejects ticket IDs that already exist on the board
 
 ---
 
 ## Stack
 
-- React 19 (Create React App)
-- `@dnd-kit/core` + `@dnd-kit/sortable`
+- **React 19** (Create React App)
+- **`@dnd-kit/core` + `@dnd-kit/sortable`** — drag and drop
+  *(react-beautiful-dnd was dropped — incompatible with React 19)*
+- No backend. No database. No external services.
+
+---
 
 ## File Structure
 
 ```
-install-mac.sh          macOS installer
-start-mac.command       macOS launcher (double-clickable)
-install-windows.bat     Windows installer (double-clickable)
-install-windows.ps1     Windows install logic (called by .bat)
-start-windows.bat       Windows launcher (double-clickable)
-
-src/
-  App.js                board state, DnD context, all handlers, persistence, file I/O
-  Column.js             droppable column with inline rename + delete confirm
-  SortableJiraTicket.js drag wrapper with edit/confirm-delete state
-  JiraTicket.js         visual ticket component (also used by DragOverlay)
-  Settings.js           settings modal (theme + log viewer)
-  storage.js            localStorage helpers: board, settings, daily log rotation
-  App.css               CSS variable theming (dark/light/system), all component styles
+jira-ticket-organizer/
+├── install-mac.sh          macOS installer (Node.js check + npm install)
+├── start-mac.command       macOS launcher (double-clickable)
+├── install-windows.bat     Windows installer entry point (double-clickable)
+├── install-windows.ps1     Windows install logic (winget → Node.js + npm install)
+├── start-windows.bat       Windows launcher (double-clickable)
+├── USER_MANUAL.md          Full user manual
+├── docs/
+│   └── jira_organizer.png  App screenshot
+└── src/
+    ├── App.js              Board state, DnD context, all handlers, persistence, file I/O
+    ├── Column.js           Droppable column with inline rename + delete confirm
+    ├── SortableJiraTicket.js  Drag wrapper with inline edit and confirm-delete state
+    ├── JiraTicket.js       Visual ticket component (shared with DragOverlay)
+    ├── Settings.js         Settings modal — theme picker + log viewer
+    ├── storage.js          localStorage helpers: board, settings, daily log rotation
+    └── App.css             CSS variable theming (dark/light/system), all component styles
 ```
 
-## Requirements
+---
 
-- Node.js 18+ (installed automatically by the install scripts)
-- A modern browser (Chrome, Firefox, Edge, Safari)
+## Notes
+
+- **No data leaves your machine.** The app has no telemetry, no analytics, no accounts.
+  The only external fetch is loading Bootstrap/Chart.js from a CDN — no activity data is involved.
+- **localStorage** is used for auto-save. Clearing browser data will reset the board.
+  Use **💾 Save** to keep a portable backup.
+- **Sharing workflow:** export your board → recipient opens it with **📂 Open** →
+  they reorganize and export back → you import and see **↗ moved** badges on relocated tickets.
+
+For full usage instructions see **[USER_MANUAL.md](USER_MANUAL.md)**.
