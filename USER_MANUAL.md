@@ -43,13 +43,13 @@ Runs entirely on your machine. No Jira login. No cloud. No accounts.
 **Step 1 — Get the files**
 
 Option A — Download ZIP (no Git required):
-1. Go to https://github.com/autisticcaveman/jira-ticket-organizer
+1. Go to https://github.com/HuggingBunny/Jira-Priority
 2. Click the green **Code** button → **Download ZIP**
 3. Extract the ZIP to a folder (e.g. your Desktop or Documents)
 
 Option B — Clone with Git:
 ```bash
-git clone https://github.com/autisticcaveman/jira-ticket-organizer.git
+git clone https://github.com/HuggingBunny/Jira-Priority.git
 ```
 
 ---
@@ -92,13 +92,13 @@ You only need to run the installer once. After that, launch the app using `start
 **Step 1 — Get the files**
 
 Option A — Download ZIP (no Git required):
-1. Go to https://github.com/autisticcaveman/jira-ticket-organizer
+1. Go to https://github.com/HuggingBunny/Jira-Priority
 2. Click the green **Code** button → **Download ZIP**
 3. Right-click the ZIP → **Extract All** → choose a destination folder
 
 Option B — Clone with Git:
 ```
-git clone https://github.com/autisticcaveman/jira-ticket-organizer.git
+git clone https://github.com/HuggingBunny/Jira-Priority.git
 ```
 
 ---
@@ -369,4 +369,4 @@ The JSON file is malformed or not a board export. Only import files created by *
 
 ---
 
-*Jira Ticket Organizer — https://github.com/autisticcaveman/jira-ticket-organizer*
+*Jira Ticket Organizer — https://github.com/HuggingBunny/Jira-Priority*

@@ -18,7 +18,7 @@ No Jira login. No internet required. Board state saves locally and can be shared
 **Option B — Clone with Git**
 
 ```bash
-git clone https://github.com/autisticcaveman/jira-ticket-organizer.git
+git clone https://github.com/HuggingBunny/Jira-Priority.git
 cd jira-ticket-organizer
 ```
 
