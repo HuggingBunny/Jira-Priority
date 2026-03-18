@@ -1,5 +1,7 @@
 # Jira Ticket Organizer
 
+*Part of the [HuggingBunny Open Source Suite](https://github.com/HuggingBunny)*
+
 A local drag-and-drop board for organizing Jira tickets across EISGRC columns.
 No Jira login. No internet required. Board state saves locally and can be shared as a JSON file.
 
