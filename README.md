@@ -5,8 +5,7 @@
 A local drag-and-drop board for organizing Jira tickets across EISGRC columns.
 No Jira login. No internet required. Board state saves locally and can be shared as a JSON file.
 
-![Jira Ticket Organizer](docs/jira_organizer.png)
-
+screenshot removed, Ill update this later in the week.
 ---
 
 ## Download
